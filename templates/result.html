@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Result</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body style="display: flex; align-items: normal; background: linear-gradient(to bottom, #eee, #9a97c4, #24243e);">
+    <div id="main">
+        <h1>Result</h1>
+        <div class="result">
+            {% for i in range(records|length) %}
+                <li>{{records[i]}}</li>
+            {% endfor %}
+        </div>
+    </div>
+    <script></script>
+</body>
+</html>

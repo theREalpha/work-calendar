@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Records Page</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body style="display: flex; align-items: normal; background: linear-gradient(to bottom, #eee, #9a97c4, #24243e);">
+    <div id="main">
+        <h1>Records Page</h1>
+        <div class="get-records">
+            <form action="/fetchRecords" method="get">
+                <label for="chk" aria-hidden="true">Fetch Records</label>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="date" name="sDate" placeholder="Start Date">
+                <input type="date" name="eDate" placeholder="End Date">
+                <button>Get Records</button>
+            </form>
+        </div>
+    </div>
+    <script></script>
+</body>
+</html>

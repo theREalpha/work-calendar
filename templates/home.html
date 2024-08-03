@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home Page</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body style="display: flex; align-items: normal; background: linear-gradient(to bottom, #eee, #9a97c4, #24243e);">
+    <div id="main">
+        <h1>Records Page</h1>
+        <p>Logged in as {{email}}<br></p>
+        <div id="session" hidden="true">{{ sessionID }}</div>
+        <div class="home">
+            <li>
+                <a href="/records.html">Get Records</a>
+            </li>
+
+        </div>
+
+    </div>
+    <script>
+        sessionID=document.getElementById('session').textContent
+        var date = new Date();
+        date.setTime(date.getTime() + (1 * 24 * 60 * 60 * 1000));
+        var expires = '; expires=' + date.toUTCString();
+        document.cookie = 'sessionID=' + sessionID + expires + '; path=/';
+    </script>
+</body>
+</html>
