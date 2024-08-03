@@ -59,7 +59,9 @@ async def ping():
 @app.post("/login")
 async def login(request: Request,response: Response, email: str= Form(...), pswd: str= Form(...), ):
     user = get_user(email)
-    if user: pswd_hash = user[2]
+    if not user: 
+        return JSONResponse({"status":"Login Fail", "email": email, "password": pswd})
+    pswd_hash = user[2]
     if selfHash(pswd.encode(), pswd_hash.split(":".encode())[0])!=pswd_hash:
         return JSONResponse({"status":"Login Fail", "email": email, "password": pswd})
     if email not in session_storage.values():
