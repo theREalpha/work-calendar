@@ -80,6 +80,15 @@ async def register(username:str = Form(...), email: str= Form(...), pswd: str= F
         return RedirectResponse(url="/login.html", status_code=302)
     return JSONResponse({"status":"Registration Fail", "username": username, "email": email, "password": pswd})
 
+@app.get("/logout")
+def logout(request: Request):
+    sessionID= request._cookies.get("sessionID")
+    if sessionID and sessionID in session_storage:
+        del session_storage[session_storage[sessionID]]
+        del session_storage[sessionID]
+    response = RedirectResponse(url="/login.html", status_code=302)
+    response.delete_cookie("sessionID")
+    return response
 
 @app.get("/getRecords")
 async def getRecords(request: Request, email: str= None, sDate:str= None, eDate:str= None):
