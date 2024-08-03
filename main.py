@@ -1,12 +1,12 @@
 from fastapi import FastAPI, Form, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from uuid import uuid4
 from datetime import datetime, timedelta
 from util.database import create_database, selfHash, add_user, get_user
-from util.kintone import getRecords
+from util.kintone import fetchRecords
 from src.models import User, Record
 create_database()
 app = FastAPI()
@@ -19,8 +19,16 @@ session_storage = {}
 async def indexH(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/login.html",response_class=HTMLResponse)
+@app.exception_handler(404)
+async def notFound(request: Request, exception):
+    return templates.TemplateResponse("404.html", {"request": request})
+
+@app.get("/login.html")
 async def loginH(request: Request):
+    sessionID= request._cookies.get("sessionID",None)
+    print(sessionID)
+    if sessionID and sessionID in session_storage:
+        return RedirectResponse(url="/home", status_code=302)
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/records.html", response_class=HTMLResponse)
@@ -49,7 +57,7 @@ async def ping():
     return JSONResponse({"message": "Server is Up and Running!"})
 
 @app.post("/login")
-async def login(email: str= Form(...), pswd: str= Form(...)):
+async def login(request: Request,response: Response, email: str= Form(...), pswd: str= Form(...), ):
     username, e_mail, pswd_hash = get_user(email)
     if selfHash(pswd.encode(), pswd_hash.split(":".encode())[0])!=pswd_hash:
         return JSONResponse({"status":"Login Fail", "email": email, "password": pswd})
@@ -59,7 +67,9 @@ async def login(email: str= Form(...), pswd: str= Form(...)):
         session_storage[email]=sessionID
     else:
         sessionID = session_storage[email]
-    return RedirectResponse(url="/home?sessionID="+ sessionID, status_code=302)
+    response = RedirectResponse(url="/home?sessionID="+ sessionID, status_code=302)
+    response.set_cookie("sessionID", sessionID, max_age=86400)
+    return response
 
 @app.post("/register")
 async def register(username:str = Form(...), email: str= Form(...), pswd: str= Form(...)):
@@ -67,11 +77,12 @@ async def register(username:str = Form(...), email: str= Form(...), pswd: str= F
         return RedirectResponse(url="/login.html", status_code=302)
     return JSONResponse({"status":"Registration Fail", "username": username, "email": email, "password": pswd})
 
-@app.get("/fetchRecords")
-async def fetchRecords(request: Request, email: str= None, sDate:str= None, eDate:str= None):
+
+@app.get("/getRecords")
+async def getRecords(request: Request, email: str= None, sDate:str= None, eDate:str= None):
     sessionID= request._cookies.get("sessionID")
     if not sessionID or sessionID not in session_storage:
-        return JSONResponse(status_code=401, content={"detail":"Unauthorized. Please Relogin."})
+        return templates.TemplateResponse("invalidSession.html",{"request": request},status_code=401)
     if not email:
         return JSONResponse(status_code=404, content={"detail" : "Invalid Request"})
     else:
@@ -81,5 +92,8 @@ async def fetchRecords(request: Request, email: str= None, sDate:str= None, eDat
         sDate= datetime.today().strftime("%Y-%m-%d")
     if not eDate:
         eDate = (datetime.today()+timedelta(days=3)).strftime("%Y-%m-%d")
-    records = getRecords(email, sDate, eDate)
-    return templates.TemplateResponse("result.html", {"request": request, "records":records})
+    resp = fetchRecords(email, sDate, eDate)
+    if "records" not in resp:
+        return JSONResponse(status_code=404, content=resp)
+
+    return templates.TemplateResponse("result.html", {"request": request, "records":resp['records'], "count":resp['count']})

@@ -5,6 +5,9 @@
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body style="display: flex; align-items: normal; background: linear-gradient(to bottom, #eee, #9a97c4, #24243e);">
+    <div id="navbar" style="align-items: right;">
+        <a href="/logout">logout</a>
+    </div>
     <div id="main">
         <h1>Records Page</h1>
         <p>Logged in as {{email}}<br></p>
@@ -18,11 +21,6 @@
 
     </div>
     <script>
-        sessionID=document.getElementById('session').textContent
-        var date = new Date();
-        date.setTime(date.getTime() + (1 * 24 * 60 * 60 * 1000));
-        var expires = '; expires=' + date.toUTCString();
-        document.cookie = 'sessionID=' + sessionID + expires + '; path=/';
     </script>
 </body>
 </html>

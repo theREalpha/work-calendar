@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from src.models import Record
 from config import BASEURL, TOKEN, APP 
 
-def getRecords(email,sDate:str=datetime.today().strftime("%Y-%m-%d"),eDate:str=(datetime.today()+timedelta(days=3)).strftime("%Y-%m-%d"), limit:int = None):
+def fetchRecords(email,sDate:str=datetime.today().strftime("%Y-%m-%d"),eDate:str=(datetime.today()+timedelta(days=7)).strftime("%Y-%m-%d"), limit:int = None):
     url=BASEURL+f"/records.json?totalCount=true&app={APP}"
     headers={
         'X-Cybozu-API-Token':TOKEN
@@ -17,8 +17,9 @@ def getRecords(email,sDate:str=datetime.today().strftime("%Y-%m-%d"),eDate:str=(
     # Event date less than eDate
     query+= f'and 日付<"{eDate}" '
 
-    # Event for User email
-    query += f'and 氏名 in ("{email}") '
+    # Event for User email, if no email return all records within dates
+    if email:
+        query += f'and 氏名 in ("{email}") '
 
     # limit number of records by limit
     if limit:
@@ -28,6 +29,6 @@ def getRecords(email,sDate:str=datetime.today().strftime("%Y-%m-%d"),eDate:str=(
     if resp.status_code != 200:
         return {"error":resp.status_code, "message":resp.text}
     resp=json.loads(resp.content.decode())
-    totalRecords = resp['totalCount']
+    totalCount = resp['totalCount']
     records=list(map(Record,resp['records']))
-    return records
+    return {"count":totalCount, "records":records}
